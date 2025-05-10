@@ -5,7 +5,7 @@ random_num = random.randint(1, 20)
 while True:
 
     user_input = int(input("Guess a number between 1 and 20: "))
-
+    
     if random_num == user_input:
         print("You guessed the number correctly!")
         break
