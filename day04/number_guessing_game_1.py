@@ -1,14 +1,11 @@
 import random
-import sys
+import sys  
 
 random_num = random.randint(1, 20)
 
 user_input = int(input("Guess a number between 1 and 20: "))
 
 guess = True
-
-if random_num == user_input:
-    print("You guessed the number correctly!")
 
 while not guess:
 
@@ -20,5 +17,8 @@ while not guess:
         print("The number you guessed is smaller than the actual number. Try again!")
         user_input = int(input("Guess a number between 1 and 20: "))
 
+if random_num == user_input:
+    print("You guessed the number correctly!")
+    sys.exit()
 
     
