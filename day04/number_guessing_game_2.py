@@ -3,12 +3,18 @@ import random
 random_num = random.randint(1, 20)
 
 while True:
-
+    
     user_input = input("Guess a number between 1 and 20, or use 'x' to exit: ")
 
     if user_input.lower() == 'x':
         print("Exiting the game.")
         break
+
+    try:
+        user_input = int(user_input)
+    except ValueError:
+        print("Invalid input. Please enter a number between 1 and 20.")
+        continue
 
     if random_num == int(user_input):
         print("You guessed the number correctly!")
