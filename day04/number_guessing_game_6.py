@@ -2,14 +2,20 @@ import random
 
 random_num = random.randint(1, 20)
 debug_mode = False
+move_mode = False
 
 print("Welcome to the Number Guessing Game!")
-print("Type 's' to see the number, 'x' to exit the game, or 'd' for debug mode.")
+print("Type 's' to see the number,'x' to exit the game,'d' for debug mode, 'm' for move mode, or 'n' for a new round.")
 
 while True:
 
     if debug_mode:
         print(f"DEBUG MODE: The random number is {random_num}")
+
+    if move_mode:
+        print("MOVE MODE: The random number is changing!")
+        random_num += random.randint(-2,2)
+        random_num = max(1, min(20, random_num))
 
     user_input = input("Guess a number between 1 and 20: ")
 
@@ -24,6 +30,16 @@ while True:
     elif user_input.lower() == 'd':
         debug_mode = not debug_mode 
         print(f"Debug mode is now {'ON' if debug_mode else 'OFF'}")
+        continue
+
+    elif user_input.lower() == 'm':
+        move_mode = not move_mode 
+        print(f"Move mode is now {'ON' if move_mode else 'OFF'}")
+        continue
+
+    elif user_input.lower() == 'n':
+        print("Skipping this round. New number will be generated.")
+        random_num = random.randint(1, 20)
         continue
 
     try:
