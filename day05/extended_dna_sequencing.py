@@ -1,11 +1,20 @@
 seq_input = input("Enter a DNA sequence: ")
 
-seq_input = seq_input.upper().split('X') 
+seq_input = seq_input.upper()
 
-#seq_input = [seq_input.split(letter) for letter in seq_input if letter not in 'ACGT' else continue]
+seq_lst = []
+seq = ''
 
+for letter in seq_input:
+    if letter in 'ATCG':
+        seq += letter
+    else:
+        if seq:
+            seq_lst.append(seq)
+            seq = ''
 
+# capture the last sequence if it exists
+if seq:
+    seq_lst.append(seq)
 
-seq_input = filter(lambda x: x != '', seq_input)
-
-print(sorted(list(seq_input), key = len, reverse = True))
+print(sorted(list(seq_lst), key = len, reverse = True))
