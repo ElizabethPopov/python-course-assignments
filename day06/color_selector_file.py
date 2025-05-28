@@ -1,16 +1,20 @@
 import sys
 
-print("Type 'x' to exit the program.")
-
 if len(sys.argv) != 2:  
     print("You should provide a txt file.")
     sys.exit(1)
 
 file_name = sys.argv[1]
 
+print("Type 'x' to exit the program.")
+
 with open(file_name, 'r') as file:
     content = file.read()
     color_list = content.splitlines()
+
+if not color_list:
+        print("The file is empty.")
+        sys.exit(1)
 
 print("Here are the colors in the file:")
 
