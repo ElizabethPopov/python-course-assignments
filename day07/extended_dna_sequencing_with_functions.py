@@ -31,8 +31,19 @@ def main():
     try:
         with open(filename, 'r') as f:
             seq_input = f.read()
+                
     except FileNotFoundError:
         print(f"Error: File '{filename}' not found.")
+        sys.exit(1)
+    
+    # Check if it is a valid text file  
+    if not filename.endswith('.txt'):
+        print("----\nError: The provided file is not a valid text file.")
+        sys.exit(1)
+    
+    # Check if the file is empty
+    if not seq_input.strip():
+        print("----\nError: The file is empty.")
         sys.exit(1)
 
     seq_lst = return_sequence_from_input(seq_input)
