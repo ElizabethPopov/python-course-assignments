@@ -1,64 +1,117 @@
 import sys
 import re
+from datetime import datetime
 
-def parse_hours_log(log_file):
-    """
-    Parses a log file to extract hours, prints them with their description
-    and stores them in a list with the corresponding desctiption.
-
-    """
-    with open(log_file, 'r') as file:
-        content = file.read()
-        lines = content.splitlines()
-        print(lines)
-        hours_list = []
-        for i,line in enumerate(lines[:-1]):
-            match = re.findall(r'(^[0-9]{2}:[0-9]{2})', lines[i])
-            second_match = re.findall(r'(^[0-9]{2}:[0-9]{2})', lines[i+1])
-            descroption = re.findall(r'(\s.*$)', lines[i])
-            #hour = f'{match}-{second_match}'
-            #print(hour)
-            if match and second_match and descroption:
-                hour = f'{match[0]}-{second_match[0]} {descroption[0].strip()}'
-                print(hour)
-                hours_list.append(hour)
-
-            if line == '':
-                print('')
-                hours_list.append('none')
-
-    return hours_list
-
-def calculate_minutes(hours_list):
-    """
-    Calculates the total minutes of each activity from a list of hours.
-
-    """
-    total_minutes = 0
-    for hour in hours_list:
-        if hour == 'none':
+def parse_log_lines(lines):
+    parsed = []
+    last_was_empty = False
+    
+    for i in range(len(lines) - 1):
+        if not lines[i] or not lines[i + 1]:
+            if not last_was_empty:
+                parsed.append(None)
+                last_was_empty = True
             continue
-        match = re.findall(r'(\d{2}):(\d{2})-(\d{2}):(\d{2})', hour)
-        if match:
-            start_hour, start_minute, end_hour, end_minute = map(int, match[0])
-            total_minutes += (end_hour - start_hour) * 60 + (end_minute - start_minute)
-    return total_minutes
+        last_was_empty = False
 
-def return_report_file(hours_list):
-    output_file = sys.argv[1].replace('.log', '_report.txt')
+        current = lines[i]
+        next_line = lines[i + 1]
+
+        current_match = re.match(r'^(\d{2}:\d{2})\s+(.*)$', current)
+        next_match = re.match(r'^(\d{2}:\d{2})\s+(.*)$', next_line)
+
+        if current_match and next_match:
+            start = current_match.group(1)
+            end = next_match.group(1)
+            description = current_match.group(2).strip()
+
+            if description.lower() == 'end':
+                continue
+
+            parsed.append((start, end, description))
+
+    return parsed
+
+
+def pair_entries_with_durations(entries):
+    report_lines = []
+    activity_durations = {}
+
+    for item in entries:
+        if item is None:
+            report_lines.append('')
+            continue
+
+        start_time, end_time, activity = item
+
+        start_dt = datetime.strptime(start_time, "%H:%M")
+        end_dt = datetime.strptime(end_time, "%H:%M")
+        duration = int((end_dt - start_dt).total_seconds() / 60)
+
+        if duration <= 0:
+            continue
+
+        report_lines.append(f"{start_time}-{end_time} {activity}")
+        activity_durations[activity] = activity_durations.get(activity, 0) + duration
+
+    return report_lines, activity_durations
+
+
+def generate_summary(activity_durations):
+    """
+    Generates a summary of total minutes spent on each activity and their percentage of total time.
+    Returns a list of formatted strings for the summary.
+    """
+    total_minutes = sum(activity_durations.values())
+    summary = []
+
+    for activity, minutes in sorted(activity_durations.items(), key=lambda x: -x[1]):
+        percent = (minutes / total_minutes) * 100
+        summary.append(f"{activity:<25} {minutes:>3} minutes   {percent:>3.0f}%")
+
+    return summary
+
+
+def write_report(report_lines, summary_lines, input_file):
+    """
+    Writes the report and summary to a new file based on the input file name.
+    The output file will have the same name as the input file but with '_report'.
+    """
+    output_file = input_file.replace('.log', '_report.txt')
     with open(output_file, 'w') as f:
-        for i, (key, value) in enumerate(items):
-            line = "{:<15} {}".format(key, value)
-            if i < len(items) - 1:
-                line += '\n'
-            f.write(line)
+        for line in report_lines:
+            f.write(line + '\n')
+
+        f.write('\n') 
+
+        for line in summary_lines:
+            f.write(line + '\n')
+
+
 
 def main():
-    '''Main function to execute the sequence processing.'''
+    """
+    Main function to parse command line arguments, read the log file,
+    process the entries, and write the report.
+    """
+    if len(sys.argv) != 2 or not sys.argv[1].endswith('.log'):
+        print("Usage: python parse_hours_log.py <file>.log")
+        sys.exit(1)
+
     input_file = sys.argv[1]
-    hours_list = parse_hours_log(input_file)
-    sorted_seq_lst = sort_sequences(seq_lst)
-    print(sorted_seq_lst)
+
+    # Read the file and get lines
+    with open(input_file, 'r') as f:
+        lines = lines = [line.strip() for line in f]
+
+    # Pass lines to the parser
+    entries = parse_log_lines(lines)
+
+    # Generate full report
+    report_lines, activity_durations = pair_entries_with_durations(entries)
+    summary_lines = generate_summary(activity_durations)
+    write_report(report_lines, summary_lines, input_file)
+
 
 if __name__ == "__main__":
     main()
